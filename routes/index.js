@@ -3,6 +3,7 @@ var mysql = require('mysql');
 var session = require('express-session');
 var router = express.Router();
 var cors = require('cors');
+var jwt = require("express-jwt");
 
 router.use(cors());
 
@@ -151,9 +152,16 @@ router.post('/login',function(req, res) {
         }
         else {
             //if(req.body.password.toString().trim() === rows[0].password.toString().trim()){
+               var token = jwt.sign(rows[0].username, "kbkbb677", {
+                 expiresInMinutes: 1440 // expires in 24 hours
+               });
                 sess=req.session;
                 sess.email = rows[0].username;
-                res.json({success:true,id:req.sessionID}).end();
+                res.json({
+                    success:true,
+                    id:req.sessionID,
+                    token:token
+                }).end();
             //}
             //else {
             //   res.json({success:false});
