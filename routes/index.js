@@ -1,8 +1,9 @@
 var express = require('express');
-var mysql = require("mysql");
+var mysql = require('mysql');
 var session = require('express-session');
 var router = express.Router();
 var cors = require('cors');
+
 router.use(cors());
 
 
@@ -32,6 +33,13 @@ var pool = mysql.createPool({
     database : 'c9',
     debug    :  false
 });
+
+router.use(function(req,res,next){
+     console.log(req.body);
+     console.log(req.session);
+     console.log(req.session.email);
+     next();
+})
 
 
 pool.getConnection(function(err, connection) {
@@ -113,13 +121,17 @@ connection.on('error', function(err) {
         return connection;
   });
 }*/
-
+/*
+router.use(function(req,res,next){
+    console.log(req.body);
+    next();
+})*/
 
 
 /* GET home page. */
-router.get('/', function(req, res, next) {
+/*router.get('/', function(req, res, next) {
   res.render('index', { title: 'Express' });
-});
+});*/
 
 router.post('/login',function(req, res) {
     console.log(req.body);
@@ -130,16 +142,10 @@ router.post('/login',function(req, res) {
     
          if (err) {
             console.error('Error executing query: ' + err.stack);
-      //      console.error('Error executing query: ' + err.stack);
+      //    console.error('Error executing query: ' + err.stack);
             res.status(400).end();
         }
-       /* if(rows.length>0){
-            
-        console.log(req.body.username);
-        console.log(req.body.password);
-        console.log(rows[0].username);
-        console.log(rows[0].password);
-        console.log(rows.length);}*/
+      
         if (!(rows.length ==1) ){
             res.status(400).end();
         }
