@@ -81,13 +81,14 @@ router.use(function(req, res, next) {
 });
 
 
-router.use(function(req,res,next){
-      console.log(req.body);
-      console.log(req.decoded);
-//      console.log(req.session);
-//      console.log(req.session.email);
-      next();
- })
+// router.use(function(req,res,next){
+//       console.log("-----");
+//       console.log(req.body);
+//       console.log(req.decoded);
+// //      console.log(req.session);
+// //      console.log(req.session.email);
+//       next();
+//  })
 
 // Data handling API's
 // -------------------------------------------------------
