@@ -3,8 +3,8 @@ var mysql = require("mysql");
 var session = require('express-session');
 var router = express.Router();
 var cors = require('cors');
+var jwt = require('jsonwebtoken');
 router.use(cors());
-
 
 //sesssion settings
 router.use(session({ 
@@ -45,23 +45,44 @@ pool.getConnection(function(err, connection) {
 })
 
 
+router.use(function(req, res, next) {
 
+  // check header or url parameters or post parameters for token
+  var token = req.body.token || req.query.token || req.headers['x-access-token'];
+  //console.log(token);
+  // decode token
+  if (token) {
 
- router.use(function(req,res,next){
-     console.log("ccccc");
-     console.log(req.body);
-     console.log(req.session);
-     console.log(req.session.email);
-     next();
- })
+    // verifies secret and checks exp
+    jwt.verify(token, "R1s4@&'--", function(err, decoded) {      
+      if (err) {
+        console.log(err);
+        return res.json({ success: false, message: 'Failed to authenticate token.' });    
+      } else {
+        // if everything is good, save to request for use in other routes
+        req.decoded = decoded;   
+        //console.log(decoded);
+        next();
+      }
+    });
 
+  } else {
+
+    // if there is no token
+    // return an error
+    return res.status(403).send({ 
+        success: false, 
+        message: 'No token provided.' 
+    });
+    
+  }
+});
 
 // Data handling API's
 // -------------------------------------------------------
 
-
-
 router.post('/setLocation', function (req, res) {
+    //sess = req.session;
     //console.debug(req.body);
     if(req.session.email){
     var count=0;
@@ -72,7 +93,7 @@ router.post('/setLocation', function (req, res) {
     }
 //    console.log(count);
 
-    if(count ==2 && req.body.user!= "" && req.body.location.coords.latitude!="" && req.body.location.coords.longitude!="" ) {
+    if(count ==3 && req.body.user!= "" && req.body.location.coords.latitude!="" && req.body.location.coords.longitude!="" ) {
         var postData = {
             id:  req.body.user,
             lat: req.body.location.coords.latitude,
@@ -81,7 +102,7 @@ router.post('/setLocation', function (req, res) {
             battery: req.body.location.battery.level
         };
 
-        console.info("setLocation -- " + JSON.stringify(postData));
+        //console.info("setLocation -- " + JSON.stringify(postData));
         pool.query('INSERT into logs SET ?', postData, function (err, rows, fields) {
             if (err) {
                 console.error('Error executing query: ' + err.stack);
@@ -96,7 +117,7 @@ router.post('/setLocation', function (req, res) {
 
 //connection.end();
 router.post('/updateStatus', function (req, res) {
-     if(req.session.email){
+     
     //console.log(req.body);
     var count=0;
     for (key in req.body) {
@@ -105,10 +126,10 @@ router.post('/updateStatus', function (req, res) {
             count++;
         }
     }
-    console.log(count);
-        if(count == 2 && req.body.id != "" && req.body.status!="") {
+    //console.log(count);
+    if(count == 3 && req.body.id != "" && req.body.status!="") {
         var postData = {
-            id: req.body.id,
+            id: req.body.user,
             status:req.body.status
         };
         //console.log(postData);
@@ -117,7 +138,7 @@ router.post('/updateStatus', function (req, res) {
             if (err) {
                 console.log('Error executing query: ' + err.stack);
                 //  console.error('Error executing query: ' + err.stack);
-                res.sendStatus(404).end();
+                res.setStatus(404).end();
             }
         });
 //    res.header("Access-Control-Allow-Origin", "*");
@@ -125,8 +146,7 @@ router.post('/updateStatus', function (req, res) {
         res.json({"200": "OK"});
     }
     //else res.json({"404":"Check input data"});
-    else res.sendStatus(404);}
-    else { res.sendStatus(404).end();}
+    else res.sendStatus(404);
 });
 
 
@@ -137,7 +157,7 @@ router.get('/getLastLocation/:id',function(req,res){
       //      console.error('Error executing query: ' + err.stack);
             return;
         }
-        console.info("getLastLocation -- "+req.params.id);
+        //console.info("getLastLocation -- "+req.params.id);
         if (rows.length < 1) {
             res.json({"404": "Does not exists"});
         }
@@ -148,7 +168,7 @@ router.get('/getLastLocation/:id',function(req,res){
 });
 
 router.get('/getLocationHistory/:id',function(req,res) {
-    console.info("getLocationHistory -- " + req.params.id);
+    //console.info("getLocationHistory -- " + req.params.id);
     connection.query('SELECT lat,lng,timestamp from logs where id = ? order by timestamp desc', req.params.id, function (err, rows, fields) {
         if (err) {
             console.error('Error executing query: ' + err.stack);
@@ -166,7 +186,7 @@ router.get('/getLocationHistory/:id',function(req,res) {
 
 
 router.get('/getSellerList',function(req,res) {
-    console.info("getSellerList -- ");
+  //  console.info("getSellerList -- ");
     connection.query('SELECT DISTINCT(id) from logs order by timestamp desc', function (err, rows, fields) {
         if (err) {
             console.error('Error executing query: ' + err.stack);
@@ -217,65 +237,5 @@ router.get('/getTodayStatus/:id',function(req,res) {
 
     });
 });
-
-
-
-
-router.post('/login',function(req, res) {
-    console.log(req.body);
-    if(req.body.username!= '' && req.body.password!=''){
-  //  res.header("Access-Control-Allow-Origin","*");
-    //var connection = handle_database(req,res);
-    pool.query('SELECT username,password from users where username = ? and password = ?',[req.body.username,req.body.password],function(err,rows,fields){
-    
-         if (err) {
-            console.error('Error executing query: ' + err.stack);
-      //    console.error('Error executing query: ' + err.stack);
-            res.status(400).end();
-        }
-      
-        if (!(rows.length ==1) ){
-            res.status(400).end();
-        }
-        else {
-            //if(req.body.password.toString().trim() === rows[0].password.toString().trim()){
-                sess=req.session;
-                sess.email = rows[0].username;
-                res.json({success:true,id:req.sessionID}).end();
-            //}
-            //else {
-            //   res.json({success:false});
-                
-            //}
-        }
-    });
-    }
-    else {
-        res.json({success:false});
-    }
-})
-
-router.get('/logout',function(req,res){
-    req.session.destroy(function(err){
-       if(err) {
-           console.error('Session can\'t be destroyed !!');
-           res.status(400).end();
-       }
-       else{
-           res.status(200).end();
-       }
-    });
-})
-
-router.get('/check',function(req, res) {
-    console.log(req.session.email);
-    if(req.session.email){
-        res.json({success:true}).end();
-    }
-    else
-    {
-        res.json({success:false}).end();
-    }
-})
 
 module.exports = router;
