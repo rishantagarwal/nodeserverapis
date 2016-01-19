@@ -3,7 +3,7 @@ var mysql = require('mysql');
 var session = require('express-session');
 var router = express.Router();
 var cors = require('cors');
-var jwt = require("jsonwebtoken");
+var jwt = require('jsonwebtoken');
 
 router.use(cors());
 
@@ -13,7 +13,7 @@ router.use(session({
     /*genid : function(req){
         return genuuid()
     },*/
-    secret: 'rish1313!&%agar',
+    secret: 'rish1313!&%agar.',
     saveUninitialized: true,
     resave: true,
     cookie: {secure : true}
@@ -36,11 +36,11 @@ var pool = mysql.createPool({
 });
 
 router.use(function(req,res,next){
-     console.log(req.body);
-     console.log(req.session);
-     console.log(req.session.email);
-     next();
-})
+  //    console.log(req.body);
+//      console.log(req.session);
+//      console.log(req.session.email);
+      next();
+ })
 
 
 pool.getConnection(function(err, connection) {
@@ -62,15 +62,19 @@ router.post('/login',function(req, res) {
          if (err) {
             console.error('Error executing query: ' + err.stack);
             res.status(400).end();
-        }
+         }
       
         if (!(rows.length ==1) ){
             res.status(400).end();
         }
         else {
-               var token = jwt.sign(rows[0].username, "R1s4@&'--", {
-                 expiresInMinutes: 1440 
+               var token = jwt.sign({
+                   user:rows[0].username,
+                   time: Math.floor(Date.now())
+               }, "R1s4@&'--.<script", {
+                 expiresIn: 21600
                });
+               console.log(token);
                 sess=req.session;
                 sess.email = rows[0].username;
                 res.json({

@@ -34,6 +34,7 @@ var pool = mysql.createPool({
 });
 
 
+
 pool.getConnection(function(err, connection) {
     if(err){
         connection.release();
@@ -46,7 +47,6 @@ pool.getConnection(function(err, connection) {
 
 
 router.use(function(req, res, next) {
-
   // check header or url parameters or post parameters for token
   var token = req.body.token || req.query.token || req.headers['x-access-token'];
   //console.log(token);
@@ -54,10 +54,12 @@ router.use(function(req, res, next) {
   if (token) {
 
     // verifies secret and checks exp
-    jwt.verify(token, "R1s4@&'--", function(err, decoded) {      
+    jwt.verify(token, "R1s4@&'--.<script", function(err, decoded) {      
       if (err) {
+        console.log("------");
         console.log(err);
-        return res.json({ success: false, message: 'Failed to authenticate token.' });    
+        res.status(404).end();
+        //return res.json({ success: false, message: 'Failed to authenticate token.' });    
       } else {
         // if everything is good, save to request for use in other routes
         req.decoded = decoded;   
@@ -78,6 +80,15 @@ router.use(function(req, res, next) {
   }
 });
 
+
+router.use(function(req,res,next){
+      console.log(req.body);
+      console.log(req.decoded);
+//      console.log(req.session);
+//      console.log(req.session.email);
+      next();
+ })
+
 // Data handling API's
 // -------------------------------------------------------
 
@@ -93,7 +104,7 @@ router.post('/setLocation', function (req, res) {
     }
 //    console.log(count);
 
-    if(count ==3 && req.body.user!= "" && req.body.location.coords.latitude!="" && req.body.location.coords.longitude!="" ) {
+    if(count ==3 && req.body.user!= "" && req.body.location.coords.latitude!="" && req.body.location.coords.longitude!="" && req.decoded.user==req.body.user) {
         var postData = {
             id:  req.body.user,
             lat: req.body.location.coords.latitude,
@@ -127,7 +138,7 @@ router.post('/updateStatus', function (req, res) {
         }
     }
     //console.log(count);
-    if(count == 3 && req.body.id != "" && req.body.status!="") {
+    if(count == 3 && req.body.user != "" && req.body.status!="" && req.decoded.user.toString().trim()==req.body.user.toString().trim()) {
         var postData = {
             id: req.body.user,
             status:req.body.status
