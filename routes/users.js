@@ -37,7 +37,7 @@ var pool = mysql.createPool({
 
 pool.getConnection(function(err, connection) {
     if(err){
-        connection.release();
+        //connection.release();
         console.log("Error in connection !!"+err.stacktrace);
         return;
     }
