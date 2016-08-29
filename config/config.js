@@ -14,7 +14,8 @@ var config = {
       saveUninitialized: true,
       resave: true,
       cookie: {secure : true}
-  }
+  },
+  token : "R1s4@&'--.<script"
 }
 
 var pool = mysql.createPool(config.dbConfig);

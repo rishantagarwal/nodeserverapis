@@ -1,5 +1,5 @@
 var express = require('express');
-//var mysql = require("mysql");
+
 var session = require('express-session');
 var cors = require('cors');
 var jwt = require('jsonwebtoken');
@@ -28,7 +28,7 @@ router.use(function(req, res, next) {
   if (token) {
 
     // verifies secret and checks exp
-    jwt.verify(token, "R1s4@&'--.<script", function(err, decoded) {
+    jwt.verify(token,config.token, function(err, decoded) {
       if (err) {
         console.log("------");
         console.log(err);

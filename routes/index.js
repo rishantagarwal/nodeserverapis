@@ -49,7 +49,7 @@ router.post('/login',function(req, res) {
                var token = jwt.sign({
                    user:rows[0].username,
                    time: Math.floor(Date.now())
-               }, "R1s4@&'--.<script", {
+               }, config.token, {
                  expiresIn: 21600
                });
                console.log(token);
