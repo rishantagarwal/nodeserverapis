@@ -21,12 +21,10 @@ var config = {
 var pool = mysql.createPool(config.dbConfig);
 pool.getConnection(function(err, connection) {
     if(err){
-        //connection.release();
         console.log("Error in connection !!"+err.stacktrace);
         return;
     }
  console.log('connected as id ' + connection.threadId);
-// return connection;
 })
 
 module.exports = {config,pool};

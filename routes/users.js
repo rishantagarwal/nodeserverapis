@@ -1,32 +1,33 @@
-var express = require('express');
+var express = require('express'),
+    session = require('express-session'),
+    cors = require('cors'),
+    jwt = require('jsonwebtoken'),
+    config = require('./../config/config.js');
 
-var session = require('express-session');
-var cors = require('cors');
-var jwt = require('jsonwebtoken');
 
-var config = require('./../config/config.js')
+console.log(config);
+
 var router = express.Router();
+var pool = config.pool;
+var config = config.config;
+var sess = null;
 
 router.use(cors());
 router.use(session(config.sessionConfig));
 
 
-// Reverse Przoxy configuration
+
+// Reverse Proxy configuration
 /*if (app.get('env') === 'production') {
   app.set('trust proxy', 1) // trust first proxy
   sess.cookie.secure = true // serve secure cookies
 }*/
 
-var sess = null;
-var pool = config.pool;
-
 router.use(function(req, res, next) {
   // check header or url parameters or post parameters for token
   var token = req.body.token || req.query.token || req.headers['x-access-token'];
-  //console.log(token);
   // decode token
   if (token) {
-
     // verifies secret and checks exp
     jwt.verify(token,config.token, function(err, decoded) {
       if (err) {
