@@ -1,50 +1,24 @@
 var express = require('express');
-var mysql = require("mysql");
+//var mysql = require("mysql");
 var session = require('express-session');
-var router = express.Router();
 var cors = require('cors');
 var jwt = require('jsonwebtoken');
+
+var config = require('./../config/config.js')
+var router = express.Router();
+
 router.use(cors());
+router.use(session(config.sessionConfig));
 
-//sesssion settings
-router.use(session({ 
-    /*genid : function(req){
-        return genuuid()
-    },*/
-    secret: 'rish1313!&%agar',
-    saveUninitialized: true,
-    resave: true,
-    cookie: {secure : true}
-}));
 
+// Reverse Przoxy configuration
 /*if (app.get('env') === 'production') {
   app.set('trust proxy', 1) // trust first proxy
   sess.cookie.secure = true // serve secure cookies
 }*/
 
 var sess = null;
-
-var pool = mysql.createPool({
-    connectionLimit : 200, 
-    host     : 'localhost',
-    user     : 'root',
-    password : '',
-    database : 'c9',
-    debug    :  false
-});
-
-
-
-pool.getConnection(function(err, connection) {
-    if(err){
-        //connection.release();
-        console.log("Error in connection !!"+err.stacktrace);
-        return;
-    }
- console.log('connected as id ' + connection.threadId);
-// return connection;
-})
-
+var pool = config.pool;
 
 router.use(function(req, res, next) {
   // check header or url parameters or post parameters for token
@@ -54,15 +28,15 @@ router.use(function(req, res, next) {
   if (token) {
 
     // verifies secret and checks exp
-    jwt.verify(token, "R1s4@&'--.<script", function(err, decoded) {      
+    jwt.verify(token, "R1s4@&'--.<script", function(err, decoded) {
       if (err) {
         console.log("------");
         console.log(err);
         res.status(404).end();
-        //return res.json({ success: false, message: 'Failed to authenticate token.' });    
+        //return res.json({ success: false, message: 'Failed to authenticate token.' });
       } else {
         // if everything is good, save to request for use in other routes
-        req.decoded = decoded;   
+        req.decoded = decoded;
         //console.log(decoded);
         next();
       }
@@ -72,11 +46,11 @@ router.use(function(req, res, next) {
 
     // if there is no token
     // return an error
-    return res.status(403).send({ 
-        success: false, 
-        message: 'No token provided.' 
+    return res.status(403).send({
+        success: false,
+        message: 'No token provided.'
     });
-    
+
   }
 });
 
@@ -129,11 +103,11 @@ router.post('/setLocation', function (req, res) {
 
 //connection.end();
 router.post('/updateStatus', function (req, res) {
-     
+
     //console.log(req.body);
     var count=0;
     for (key in req.body) {
-       
+
         if (req.body.hasOwnProperty(key)) {
             count++;
         }

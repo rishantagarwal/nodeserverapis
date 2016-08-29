@@ -6,18 +6,10 @@ var cors = require('cors');
 var jwt = require('jsonwebtoken');
 
 router.use(cors());
-
+var config = require('./../config/config.js')
 
 //sesssion settings
-router.use(session({
-    /*genid : function(req){
-        return genuuid()
-    },*/
-    secret: 'rish1313!&%agar.',
-    saveUninitialized: true,
-    resave: true,
-    cookie: {secure : true}
-}));
+router.use(session(config.sessionConfig));
 
 /*if (app.get('env') === 'production') {
   app.set('trust proxy', 1) // trust first proxy
@@ -25,15 +17,8 @@ router.use(session({
 }*/
 
 var sess = null;
+var pool = config.pool;
 
-var pool = mysql.createPool({
-    connectionLimit : 200,
-    host     : 'localhost',
-    user     : 'root',
-    password : '',
-    database : 'c9',
-    debug    :  false
-});
 
 // router.use(function(req,res,next){
 //   //    console.log(req.body);
@@ -43,15 +28,6 @@ var pool = mysql.createPool({
 //  })
 
 
-pool.getConnection(function(err, connection) {
-    if(err){
-        //connection.release();
-        console.log("Error in connection !!"+err.stacktrace);
-        return;
-    }
- console.log('connected as id ' + connection.threadId);
-// return connection;
-})
 
 
 router.post('/login',function(req, res) {
