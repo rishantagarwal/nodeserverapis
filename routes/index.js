@@ -9,7 +9,7 @@ router.use(cors());
 
 
 //sesssion settings
-router.use(session({ 
+router.use(session({
     /*genid : function(req){
         return genuuid()
     },*/
@@ -27,7 +27,7 @@ router.use(session({
 var sess = null;
 
 var pool = mysql.createPool({
-    connectionLimit : 200, 
+    connectionLimit : 200,
     host     : 'localhost',
     user     : 'root',
     password : '',
@@ -35,12 +35,12 @@ var pool = mysql.createPool({
     debug    :  false
 });
 
-router.use(function(req,res,next){
-  //    console.log(req.body);
-//      console.log(req.session);
-//      console.log(req.session.email);
-      next();
- })
+// router.use(function(req,res,next){
+//   //    console.log(req.body);
+// //      console.log(req.session);
+// //      console.log(req.session.email);
+//       next();
+//  })
 
 
 pool.getConnection(function(err, connection) {
@@ -57,13 +57,15 @@ pool.getConnection(function(err, connection) {
 router.post('/login',function(req, res) {
     console.log(req.body);
     if(req.body.username!= '' && req.body.password!=''){
-    pool.query('SELECT username,password from users where username = ? and password = ?',[req.body.username,req.body.password],function(err,rows,fields){
-    
+    pool.query('SELECT username,password from users where username = ? and password = ?',
+                  [req.body.username,req.body.password],
+                  function(err,rows,fields){
+
          if (err) {
             console.error('Error executing query: ' + err.stack);
             res.status(400).end();
          }
-      
+
         if (!(rows.length ==1) ){
             res.status(400).end();
         }
@@ -82,7 +84,7 @@ router.post('/login',function(req, res) {
                     id:req.sessionID,
                     token:token
                 }).end();
-          
+
         }
     });
     }
