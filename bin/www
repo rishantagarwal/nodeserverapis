@@ -4,19 +4,20 @@
  * Module dependencies.
  */
 
-var app = require('../app');
-var debug = require('debug')('api:server');
-var http = require('http');
-
-var https = require('https');
-var fs = require('fs');
+var app = require('../app'),
+    http = require('http'),
+    https = require('https'),
+    fs = require('fs'),
+    log4js = require('log4js');
 
 const options = {
   key: fs.readFileSync('../nodeserverapis/certs/rishant.key'),
   cert: fs.readFileSync('../nodeserverapis/certs/rishant.crt')
 };
 
-
+log4js.loadAppender('file');
+log4js.addAppender(log4js.appenders.file('logs/server.log'), 'serverLog');
+var logger = log4js.getLogger('serverLog');
 /**
  * Get port from environment and store in Express.
  */
@@ -40,7 +41,9 @@ var server = http.createServer(app);
  */
 
 server.listen(port);
-console.log("litening at Port no "+port);
+
+logger.info("litening at Port no "+port);
+
 server.on('error', onError);
 server.on('listening', onListening);
 
@@ -80,11 +83,11 @@ function onError(error) {
   // handle specific listen errors with friendly messages
   switch (error.code) {
     case 'EACCES':
-      console.error(bind + ' requires elevated privileges');
+      logger.error(bind + ' requires elevated privileges');
       process.exit(1);
       break;
     case 'EADDRINUSE':
-      console.error(bind + ' is already in use');
+      logger.error(bind + ' is already in use');
       process.exit(1);
       break;
     default:
@@ -101,5 +104,5 @@ function onListening() {
   var bind = typeof addr === 'string'
     ? 'pipe ' + addr
     : 'port ' + addr.port;
-  debug('Listening on ' + bind);
+  logger.debug('Listening on ' + bind);
 }
